@@ -105,36 +105,7 @@ namespace GymTECNoRelational.Models
 
         }
 
-        /*Metodo para elimnar un cliente en la base da datos.
-         * 
-         * Entrada:Cedula del cliente,token de verificacion
-         * Salida:Respuesta de tipo HTTP que indica si la operacion fue exitosa.
-         */
-        public HttpResponseMessage deleteClient(string clientId,string token)
-        {
-            HttpResponseMessage response = null;
-            if (tokenVerifier(token))
-            {
-                if (getClientByColumn(clientId, "cedula") != null)
-                {
-                    var collection = database.GetCollection<Client>("Cliente");
-                    var filter = Builders<Client>.Filter.Eq("cedula", clientId);
-                    collection.DeleteOne(filter);
-
-                    response = new HttpResponseMessage(HttpStatusCode.Conflict);
-                    response.Content = new StringContent("Valor eliminado correctamente");
-                    return response;
-                }
-                response = new HttpResponseMessage(HttpStatusCode.Conflict);
-                response.Content = new StringContent("La cedula provista no se encuentra registrada");
-                return response;
-            }
-            response = new HttpResponseMessage(HttpStatusCode.Conflict);
-            response.Content = new StringContent("Token invalido");
-            return response;
-
-        }
-
+ 
         /*Metodo para registrar un nuevo cliente en la base da datos.
          * 
          * Entrada:Informacion del cliente a registrar
@@ -197,13 +168,6 @@ namespace GymTECNoRelational.Models
             response.Content = new StringContent("Credenciales invalidas");
             return response;
         }
-        public void updateAdminToken(string adminId,string token)
-        {
-            var collection = database.GetCollection<AdminToken>("AdminToken");
-            var filter = Builders<AdminToken>.Filter.Eq("adminId", adminId);
-            var update = Builders<AdminToken>.Update.Set("token", token);
-            collection.UpdateOne(filter, update,new UpdateOptions { IsUpsert=true});
-        }
 
         /*Metodo para obtener un token unico.
         * 
@@ -247,21 +211,6 @@ namespace GymTECNoRelational.Models
             string result = BitConverter.ToString(bytes).Replace("-", String.Empty).ToLower();
 
             return result.Equals(encrypted);
-        }
-
-        /*Metodo para verificar que un token sea valido.
-         * 
-         * Entrada:Token a verificar
-         * Salida: Booleano que indica si el token es valido.
-         */
-        public bool tokenVerifier(string token)
-        {
-
-            var collection = database.GetCollection<AdminToken>("AdminToken");
-            var filter = Builders<AdminToken>.Filter.Eq("token",token);
-            List<AdminToken> tokenList = collection.Find(filter).ToList();
-            return tokenList.Count() != 0;
-          
         }
 
         /*Metodo para verificar que un token pertenzca a un cliente.
